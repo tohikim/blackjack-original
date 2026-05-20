@@ -14,62 +14,69 @@ import type { Figures } from "./types/figures";
 import { PlayerHand } from "./components/PlayerHand";
 
 function App() {
+  const [gameStarted, setGameStarted] = useState(false);
   const [deck, setDeck] = useState<string[]>([]);
   const [houseCards, setHouseCards] = useState<string[]>([]);
   const [playerCards, setPlayerCards] = useState<string[][]>([[]]);
   const [activeHandIndex, setActiveHandIndex] = useState(0);
   const [playerTurnEnded, setPlayerTurnEnded] = useState(false);
+  const [gameEnded, setGameEnded] = useState(false);
   const [canSplit, setCanSplit] = useState(false);
-  const [handEnded, setHandEnded] = useState(false);
 
   const totalHouseCount = getCardsCount(houseCards);
   const isHouseBusted = totalHouseCount > BUSTING_THRESHOLD;
   const houseTurnEnded = totalHouseCount >= HOUSE_DRAWING_THRESHOLD;
+  const pendingGameSetup =
+    playerCards[activeHandIndex >= 0 ? activeHandIndex : 0].length >= 2;
 
-  const drawPlayerCard = (handIndex = activeHandIndex) => {
-    const topCard = deck[0];
-
+  const drawPlayerCard = (card: string, handIndex = activeHandIndex) => {
     setPlayerCards((prev) => {
-      const targetHand = [...prev[handIndex], topCard];
+      const targetHand = [...(prev[handIndex] || []), card];
 
       const prefixState = prev.slice(0, handIndex);
       const suffixState = prev.slice(handIndex + 1, prev.length);
 
       return [...prefixState, targetHand, ...suffixState];
     });
-
-    setDeck((prev) => prev.slice(1));
   };
 
-  const handleStartGame = async (e: MouseEvent) => {
-    e.preventDefault();
+  const setUpTable = async () => {
+    setGameStarted(true);
 
-    await sleep(1000);
     const firstCard = deck[0];
     const secondCard = deck[1];
     const thirdCard = deck[2];
-    setPlayerCards([[firstCard, thirdCard]]);
+
+    await sleep(1000);
+    drawPlayerCard(firstCard, 0);
+
+    await sleep(1000);
     setHouseCards([secondCard]);
+
+    await sleep(1000);
+    drawPlayerCard(thirdCard, 0);
 
     setDeck((prev) => prev.slice(3));
   };
 
-  const handleReplay = (e: MouseEvent) => {
+  const handleReplay = async (e: MouseEvent) => {
     e.preventDefault();
 
-    setHouseCards([]);
-    setPlayerCards([[]]);
     setActiveHandIndex(0);
     setPlayerTurnEnded(false);
-    setHandEnded(false);
+    setGameEnded(false);
+    setHouseCards([]);
+    setPlayerCards([[]]);
 
-    handleStartGame(e);
+    await setUpTable();
   };
 
   const handleHitAction = (e: MouseEvent) => {
     e.preventDefault();
 
-    drawPlayerCard();
+    drawPlayerCard(deck[0]);
+
+    setDeck((prev) => prev.slice(1));
   };
 
   const handleSplitAction = (e: MouseEvent) => {
@@ -99,16 +106,7 @@ function App() {
     const upcomingIndex = activeHandIndex - 1;
 
     if (upcomingIndex >= 0 && playerCards[upcomingIndex].length === 1) {
-      const topCard = deck[0];
-
-      setPlayerCards((prev) => {
-        const targetHand = [...(prev[upcomingIndex] || []), topCard];
-
-        const prefixState = prev.slice(0, upcomingIndex);
-        const suffixState = prev.slice(upcomingIndex + 1, prev.length);
-
-        return [...prefixState, targetHand, ...suffixState];
-      });
+      drawPlayerCard(deck[0], upcomingIndex);
 
       setDeck((prev) => prev.slice(1));
     }
@@ -129,7 +127,7 @@ function App() {
   }, [deck, houseTurnEnded]);
 
   useEffect(() => {
-    if (playerTurnEnded || !playerCards.length) {
+    if (playerTurnEnded || !playerCards[0].length) {
       setCanSplit(false);
 
       return;
@@ -153,7 +151,7 @@ function App() {
     );
 
     if (!!playerCards.length && allPlayerHandsAreBusted) {
-      setHandEnded(true);
+      setGameEnded(true);
 
       return;
     }
@@ -163,7 +161,7 @@ function App() {
     if (
       activeHandIndex >= 0 &&
       activeHand &&
-      getCardsCount(activeHand) > BUSTING_THRESHOLD
+      getCardsCount(activeHand) >= BUSTING_THRESHOLD
     ) {
       handleHandEnded();
     }
@@ -175,6 +173,8 @@ function App() {
     }
 
     (async () => {
+      setPlayerTurnEnded(true);
+
       const newDeck = cloneDeep(deck);
       let internalHouseCards = cloneDeep(houseCards);
 
@@ -189,24 +189,27 @@ function App() {
         await sleep(1000);
       } while (getCardsCount(internalHouseCards) < HOUSE_DRAWING_THRESHOLD);
 
-      setHandEnded(true);
       setDeck(newDeck);
+      setGameEnded(true);
     })();
   }, [activeHandIndex]);
 
   return (
     <div className="flex flex-col items-center justify-center text-4xl gap-10 p-10">
-      {!houseCards.length ? (
+      {!gameStarted ? (
         <button
-          onClick={handleStartGame}
+          onClick={(e) => {
+            e.preventDefault();
+            setUpTable();
+          }}
           className="border border-black rounded-2xl p-2"
         >
           Start the game
         </button>
       ) : (
         <div className="flex flex-col items-center justify-center text-4xl gap-10 p-10">
+          <p>House cards:</p>
           <p>
-            House cards:{" "}
             {houseCards.map((card, index) => {
               const isLast = index === houseCards.length - 1;
               if (!isLast) {
@@ -214,10 +217,10 @@ function App() {
               }
               return card;
             })}
-            (Total count: {totalHouseCount})
+            {!!totalHouseCount && ` (${totalHouseCount})`}
           </p>
           {isHouseBusted && <p>House busted</p>}
-          <p className="m-0">Player cards: </p>
+          <p className="m-0 pt-16">Player cards: </p>
           {playerCards.map((cards, index) => {
             return (
               <div
@@ -229,13 +232,14 @@ function App() {
                   cards={cards}
                   totalHouseCount={totalHouseCount}
                   isActive={index === activeHandIndex}
-                  handEnded={handEnded}
+                  gameEnded={gameEnded}
+                  showActiveIndicator={playerCards.length > 1}
                 />
               </div>
             );
           })}
-          {!playerTurnEnded && !handEnded && (
-            <div className="flex flex-row gap-10">
+          {!playerTurnEnded && !gameEnded && pendingGameSetup && (
+            <div className="flex flex-row gap-10 pt-12">
               <button
                 onClick={handleHitAction}
                 className="border border-black rounded-2xl p-2"
@@ -261,7 +265,7 @@ function App() {
               </button>
             </div>
           )}
-          {handEnded && (
+          {gameEnded && (
             <div>
               <button
                 className="border border-black rounded-2xl p-2"

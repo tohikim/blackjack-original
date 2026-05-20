@@ -1,1 +1,1 @@
-export type GameState = "won" | "lost" | "pushed";
+export type GameState = "Won" | "Lost" | "Pushed" | "Busted";

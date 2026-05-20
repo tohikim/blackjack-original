@@ -7,14 +7,16 @@ export interface PlayerHandProps {
   cards: string[];
   totalHouseCount: number;
   isActive: boolean;
-  handEnded: boolean;
+  gameEnded: boolean;
+  showActiveIndicator: boolean;
 }
 
 export const PlayerHand = ({
   cards,
   totalHouseCount,
   isActive,
-  handEnded,
+  gameEnded,
+  showActiveIndicator,
 }: PlayerHandProps) => {
   const totalPlayerCount = getCardsCount(cards);
   const isPlayerBusted = totalPlayerCount > BUSTING_THRESHOLD;
@@ -24,25 +26,25 @@ export const PlayerHand = ({
   const [handState, setHandState] = useState<GameState>();
 
   useEffect(() => {
-    if (!handEnded || isPlayerBusted) {
-      setHandState(undefined);
-
-      return;
-    }
-
     switch (true) {
+      case isPlayerBusted:
+        setHandState("Busted");
+        break;
+      case !gameEnded:
+        setHandState(undefined);
+        break;
       case isHouseBusted:
-        setHandState("won");
+        setHandState("Won");
         break;
       case totalPlayerCount === totalHouseCount:
-        setHandState("pushed");
+        setHandState("Pushed");
         break;
       default:
-        setHandState(totalPlayerCount > totalHouseCount ? "won" : "lost");
+        setHandState(totalPlayerCount > totalHouseCount ? "Won" : "Lost");
     }
   }, [
-    handEnded,
     isPlayerBusted,
+    gameEnded,
     isHouseBusted,
     setHandState,
     totalPlayerCount,
@@ -51,8 +53,8 @@ export const PlayerHand = ({
 
   return (
     <div className="flex flex-col items-center justify-center gap-5 m-0">
-      <div className="flex flex-row gap-10 w-full">
-        {isActive && <p>{"=>"}</p>}
+      <div className="flex flex-row gap-8 w-full">
+        {showActiveIndicator && isActive && <p>{"=>"}</p>}
         <p>
           {cards.map((card, index) => {
             const isLast = index === cards.length - 1;
@@ -61,13 +63,10 @@ export const PlayerHand = ({
             }
             return card;
           })}
-          (Total count: {totalPlayerCount})
+          {!!totalPlayerCount && ` (${totalPlayerCount})`}
         </p>
+        {!!handState && <p>{handState}</p>}
       </div>
-      {!!handState && (
-        <p>{handState.charAt(0).toUpperCase() + handState.slice(1)}</p>
-      )}
-      {isPlayerBusted && <p className="text-red-500">busted</p>}
     </div>
   );
 };
