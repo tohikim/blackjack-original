@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BUSTING_THRESHOLD } from "../constants/cards";
+import { BUSTING_THRESHOLD } from "../constants/variables";
 import { getCardsCount } from "../utils/get-cards-count";
 import type { GameState } from "../types/game-state";
 
