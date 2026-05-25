@@ -12,7 +12,6 @@ import { sleep } from "./utils/sleep";
 import { cloneDeep } from "lodash";
 import type { Figures } from "./types/figures";
 import { PlayerHand } from "./components/PlayerHand";
-// import type { ChipValue } from "./types/chip-values";
 import { chipDenominations, PLAYER_BANKROLL } from "./constants/chips";
 import type { PlayerHandStructure } from "./types/player-hand";
 
@@ -28,9 +27,9 @@ function App() {
   const [bankTotal, setBankTotal] = useState(PLAYER_BANKROLL);
   const [initialBet, setInitialBet] = useState<number[]>([]);
   const [previousBet, setPreviousBet] = useState<number[]>([]);
-  // prevWonBankTotal useRef
+  // @todo implement prevWonBankTotal useRef
 
-  // const hasCredits = bankTotal > 0 || betTotal >= 0;
+  // @todo calculate credits - const hasCredits = bankTotal > 0 || betTotal >= 0;
 
   const totalHouseCount = getCardsCount(houseCards);
   const isHouseBusted = totalHouseCount > BUSTING_THRESHOLD;
@@ -53,23 +52,8 @@ function App() {
     );
   }, [playerTurnEnded, playerCards, activeHandIndex]);
 
-  console.log(canSplit);
-  // const chipOneCount = ((bankTotal / 1) as ChipValue) || 0;
-  // const chipFiveCount = ((bankTotal / 5) as ChipValue) || 0;
-  // const chipTenCount = ((bankTotal / 10) as ChipValue) || 0;
-  // const chipFiftyCount = ((bankTotal / 50) as ChipValue) || 0;
-  // const chipHundredCount = ((bankTotal / 100) as ChipValue) || 0;
-  // const chips = [
-  //   chipOneCount,
-  //   chipFiveCount,
-  //   chipTenCount,
-  //   chipFiftyCount,
-  //   chipHundredCount,
-  // ];
-
   const drawPlayerCard = (card: string, handIndex = activeHandIndex) => {
     setPlayerCards((prev) => {
-      console.log(prev);
       const targetHand = {
         ...prev[handIndex],
         cards: [...(prev[handIndex]?.cards || []), card],
@@ -165,7 +149,7 @@ function App() {
     e.preventDefault();
 
     setInitialBet(previousBet);
-    // remove previous bet from current bankroll
+    // @todo  remove previous bet from current bankroll
   };
 
   const handleHitAction = (e: MouseEvent) => {
@@ -414,7 +398,7 @@ function App() {
                             e.preventDefault();
                             setInitialBet([]);
                             setBankTotal(PLAYER_BANKROLL);
-                            //need to update with prevWonBankTotal AFTER win/lose logic
+                            // @todo need to update with prevWonBankTotal AFTER win/lose logic
                             //after this action, it should still show the 'replay last bet'
                           }}
                         >
@@ -430,7 +414,7 @@ function App() {
                       e.preventDefault();
                       setInitialBet([]);
                       setBankTotal(PLAYER_BANKROLL);
-                      //need to update with prevWonBankTotal AFTER win/lose logic
+                      // @todo need to update with prevWonBankTotal AFTER win/lose logic
                     }}
                   >
                     Reset the bet
