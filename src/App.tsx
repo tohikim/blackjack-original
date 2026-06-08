@@ -28,17 +28,27 @@ function App() {
   const [bankTotal, setBankTotal] = useState(PLAYER_BANKROLL);
   const [initialBet, setInitialBet] = useState<number[]>([]);
   const [previousBet, setPreviousBet] = useState<number[]>([]);
+  const [betTotal, setBetTotal] = useState<number>(0);
 
-  const currentBetTotal = playerCards?.[activeHandIndex]?.betValues.reduce(
-    (acc, cur) => acc + cur,
-    0,
+  const sumBetValues = (array?: number[]) =>
+    (array ?? []).reduce((acc, cur) => acc + cur, 0);
+
+  const currentBetTotal = sumBetValues(
+    playerCards?.[activeHandIndex]?.betValues,
   );
+  const initialBetTotal = sumBetValues(initialBet);
+  const previousBetTotal = sumBetValues(previousBet);
+
   const latestChip = initialBet[initialBet.length - 1];
   const hasCredits = bankTotal >= currentBetTotal;
   const totalHouseCount = getCardsCount(houseCards);
   const isHouseBusted = totalHouseCount > BUSTING_THRESHOLD;
+
   const playClickSound = useSFX("../public/click2.mov", 0.5);
   const playCashSound = useSFX("../public/cash.mov", 0.5);
+  const flipCardSound = useSFX("../public/flipcardSound.mov", 0.5);
+  const dealSound = useSFX("../public/dealSound.mov", 0.5);
+
   const gameSetupDone =
     playerCards[activeHandIndex >= 0 ? activeHandIndex : 0]?.cards.length >= 2;
 
@@ -88,7 +98,9 @@ function App() {
     setHouseCards([]);
     setPlayerCards([]);
     setDealMade(false);
-    setInitialBet([]);
+    setInitialBet(previousBet);
+    setBankTotal((prev) => prev - previousBetTotal);
+    setBetTotal(0);
   };
 
   const undoLatestBetChip = (e: MouseEvent) => {
@@ -102,10 +114,11 @@ function App() {
 
   const handleDeal = async (e: MouseEvent) => {
     e.preventDefault();
-    playClickSound();
+    dealSound();
     setDealMade(true);
 
     setPreviousBet(cloneDeep(initialBet));
+    setBetTotal(initialBetTotal);
     setPlayerCards([
       {
         cards: [],
@@ -127,12 +140,15 @@ function App() {
     setDeck(clonedDeck.slice(3));
 
     await sleep(1000);
+    flipCardSound();
     drawPlayerCard(firstCard, 0);
 
     await sleep(1000);
+    flipCardSound();
     setHouseCards([secondCard]);
 
     await sleep(1000);
+    flipCardSound();
     drawPlayerCard(thirdCard, 0);
   };
 
@@ -166,22 +182,28 @@ function App() {
     playClickSound();
 
     setInitialBet(previousBet);
+    setBankTotal((prev) => prev - previousBetTotal);
   };
 
-  const handleHitAction = (e: MouseEvent) => {
+  const handleHitAction = async (e: MouseEvent) => {
     e.preventDefault();
     playClickSound();
 
+    await sleep(1000);
     drawPlayerCard(deck[0]);
+    flipCardSound();
 
     setDeck((prev) => prev.slice(1));
   };
 
-  const handleSplitAction = (e: MouseEvent) => {
+  const handleSplitAction = async (e: MouseEvent) => {
     e.preventDefault();
     playClickSound();
 
+    await sleep(1000);
     const topCard = deck[0];
+    flipCardSound();
+    setBetTotal((prev) => prev + initialBetTotal);
 
     setPlayerCards((prev) => {
       const clonedTargetHand = cloneDeep(prev[activeHandIndex]);
@@ -249,6 +271,7 @@ function App() {
 
       const newDeck = cloneDeep(deck);
       let internalHouseCards = cloneDeep(houseCards);
+      await sleep(1000);
 
       do {
         const topCard = newDeck[0];
@@ -256,6 +279,7 @@ function App() {
         internalHouseCards = [...internalHouseCards, topCard];
         setHouseCards((prev) => [...prev, topCard]);
 
+        flipCardSound();
         newDeck.shift();
 
         await sleep(1000);
@@ -270,7 +294,7 @@ function App() {
     <div
       className="relative min-h-screen h-full w-full overflow-y-auto flex items-center justify-center p-4 md:p-8 select-none bg-stone-900"
       style={{
-        backgroundImage: "url('../public/Harrypotter_bg.png')",
+        backgroundImage: "url('../public/Harrypotter_bg.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
@@ -309,6 +333,8 @@ function App() {
                 playClickSound();
                 setGameStarted(true);
                 setBankTotal(PLAYER_BANKROLL);
+                setInitialBet([]);
+                setPreviousBet([]);
               }}
               className="text-[2.5rem] min-w-45 rounded-[3rem] p-2 pl-8 pr-8 bg-linear-to-b from-amber-600 to-amber-900 hover:from-amber-500 hover:to-amber-800 border border-amber-600 text-white font-bold tracking-wider shadow-[0_4px_15px_rgba(245,158,11,0.2)] active:scale-95 transition-all cursor-pointer"
             >
@@ -408,10 +434,7 @@ function App() {
                           Bet Total
                         </span>
                         <span className="text-[3rem]  text-zinc-200 drop-shadow-xl">
-                          $
-                          {!!previousBet.length && !initialBet.length
-                            ? previousBet
-                            : currentBetTotal}
+                          ${betTotal}
                         </span>
                       </div>
                     </>
@@ -453,21 +476,24 @@ function App() {
                     )}
                     {gameEnded && bankTotal <= 0.5 && (
                       <div className="p-0 m-0 flex flex-col justify-center items-center gap-2">
+                        <p className="text-[24px] font-sans tracking-widest uppercase font-bold text-zinc-400">
+                          GAME OVER! You lost all the money.
+                        </p>
                         <button
                           className="text-[2.5rem] rounded-[3rem] p-2 pl-8 pr-8 bg-linear-to-b from-amber-700 to-amber-950 hover:from-amber-600 hover:to-amber-800 border border-amber-600 text-amber-100 font-semibold shadow-md "
-                          onClick={(e: MouseEvent) => {
+                          onClick={async (e: MouseEvent) => {
                             e.preventDefault();
                             playClickSound();
                             setBankTotal(PLAYER_BANKROLL);
                             setGameStarted(false);
+                            setPreviousBet([]);
+                            setInitialBet([]);
                             handleReplay(e);
+                            await sleep(1000);
                           }}
                         >
                           Restart the game
                         </button>
-                        <p className=" italic text-[2rem]">
-                          GAME OVER! You lost all the money.
-                        </p>
                       </div>
                     )}
                     <div className="w-70 flex flex-col items-center bg-zinc-950/80 px-6 py-4 rounded-4xl shadow-xl backdrop-blur-xl my-4">
@@ -553,7 +579,9 @@ function App() {
                                   e.preventDefault();
                                   playClickSound();
                                   setInitialBet([]);
-                                  setBankTotal(PLAYER_BANKROLL);
+                                  setBankTotal(
+                                    (prev) => prev + initialBetTotal,
+                                  );
                                 }}
                               >
                                 Clear
@@ -602,7 +630,7 @@ function App() {
                         })}
                       </div>
                       <div className="flex flex-row gap-4 m-0">
-                        {bankTotal > 0 && (
+                        {(bankTotal > 0 || bankTotal === 0.5) && (
                           <div className="flex flex-row gap-4">
                             <button
                               className="text-[2.5rem] border border-red-500 rounded-[3rem] p-2 pl-8 pr-8 bg-linear-to-b from-red-700 to-red-950 hover:from-red-600 hover:to-red-800 text-white font-bold tracking-widest shadow-[0_0_15px_rgba(220,38,38,0.3)"
