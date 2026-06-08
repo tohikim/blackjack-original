@@ -350,7 +350,7 @@ function App() {
               <div className="flex flex-col h-screen justify-evenly w-full gap-0">
                 <div className="flex flex-col items-center justify-start gap-5 min-h-48 max-h-48">
                   <div className="flex flex-col items-center justify-center gap-5">
-                    <div className="min-h-26">
+                    <div className="min-h-30">
                       <div className="w-10 h-17 sm:w-14 sm:h-21 md:w-16 md:h-23 lg:w-18 lg:h-25 relative select-none">
                         {houseCards.map((card, index) => {
                           const topOffset = 13;
@@ -391,7 +391,7 @@ function App() {
                     </div>
                   </div>
                 </div>
-                <div className="flex flex-col items-center justify-start gap-5 min-h-76 max-h-76 mt-5">
+                <div className="flex flex-col items-center justify-start gap-5 min-h-80 max-h-80 mt-5">
                   <div className="flex flex-row gap-24">
                     {playerCards.map((hand, index) => {
                       return (
