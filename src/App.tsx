@@ -70,7 +70,7 @@ function App() {
     );
   }, [playerTurnEnded, playerCards, activeHandIndex]);
 
-  const handleWin = (bet) => {
+  const handleWin = (bet: number) => {
     setBankTotal((prev) => (prev += bet));
   };
 
@@ -108,7 +108,7 @@ function App() {
     playCashSound();
     if (dealMade) return;
 
-    const poppedValue = initialBet.pop();
+    const poppedValue: number = initialBet.pop();
     setBankTotal((prev) => prev + poppedValue);
   };
 
@@ -201,14 +201,14 @@ function App() {
     playClickSound();
 
     await sleep(1000);
-    const topCard = deck[0];
+    const topCard: string = deck[0];
     flipCardSound();
     setBetTotal((prev) => prev + initialBetTotal);
 
     setPlayerCards((prev) => {
       const clonedTargetHand = cloneDeep(prev[activeHandIndex]);
 
-      const split = clonedTargetHand.cards.pop();
+      const split: string = clonedTargetHand.cards.pop();
 
       const newHand: PlayerHandStructure = {
         cards: [split, topCard],
