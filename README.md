@@ -1,73 +1,60 @@
-# React + TypeScript + Vite
+# Sorcerer's Hand
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A minimalist, logic-driven Blackjack engine set in a wizarding world. By pairing classic casino rules with an immersive magical aesthetic, it delivers a clean, calculated, and thematic card-playing experience without the clutter.
 
-Currently, two official plugins are available:
+<img width="1200" height="630" alt="og-image" src="https://github.com/user-attachments/assets/019d3d0c-5f4e-4872-8891-9852a0b42ee3" />
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+<h2> Try it Live </h2>
 
-## React Compiler
+This project is deployed and ready for immediate use. You do not need to install anything locally to test the features:
+ **[Live Demo on Vercel](https://sorcerers-hand.vercel.app/)**
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+<h2>Features </h2>
 
-## Expanding the ESLint configuration
+- **Wizarding Aesthetic:** A fully styled interface utilizing rich magical elements, featuring a classic parchment-and-gold visual style set against a thematic background.
+- **Splitting & Multi-Hand Logic:** True casino rules support. When dealt pairs of equal value, split your hand seamlessly to manage distinct bets and actions in parallel.
+- **Dynamic Soundscapes:** Immersive custom audio feedback tracks every tactical movement—including distinct sound effects for chip stacking, card flips, deals, and wins.
+- **Real-time Bankroll Engine:** A precise betting layout managing multi-chip denominations ($500, $100, $25, $5, $1) with native all-in capabilities and rapid single-click undo actions.
+- **Asynchronous House Rules:** The Dealer follows rigid house thresholds ($17+$ stand rules) powered by smooth, timed sequence loops for card drawing.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+<h2>Tech Stack</h2>
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- **Frontend:** React (Vite) + TypeScriptStyling: Tailwind CSS (featuring custom background positioning and fine-grained ambient border gradients)
+- **State Management:** Core React Hooks (useState, useEffect, useMemo) combined with deep lodash cloning (cloneDeep) for resilient state isolation between hands.
+- **Audio Management:** Custom React hook abstraction (useSFX) for low-latency sound effects.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+<h2>Installation & Setup</h2> 
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+To get this project running locally, follow these steps:
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/tohikim/sorcerers-hand
+   cd sorcerers-hand
+   ```
+2. **Install core dependencies:**
+   ```bash
+   npm install
+   ```
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+3. **Install specialized utility libraries:**
+   ```bash
+   npm install lodash
+   npm install -D @types/lodash
+   ```
+   
+4. **Start the development server:**
+   ```bash
+   npm run dev
+   ```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+<h2>Project Structure</h2>
+
+- **App.tsx:** Orchestrates the game states, evaluation conditions, asynchronous dealers, and overall game layout.
+- **PlayerHand.jsx:** Coordinates individual card arrays, state rendering, wins, and loss checks for single or split states.
+- **useSFX.ts:** Custom hook executing contextual HTML5 Audio playbacks and volume scaling.
+- **utils/:** Abstracted pure logic files managing operations like getDeck, shuffle-deck, and asynchronous calculation intervals (sleep).
+
+---
+
+Developed by **Tohi Kim**
